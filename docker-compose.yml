@@ -9,12 +9,18 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.file.filename=/traefik/tls.yml"
+      - "--providers.file.watch=true"
     ports:
       - "80:80"
       - "8080:8080"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs/localhost.crt:/traefik/localhost.crt:ro
+      - ./certs/localhost.key:/traefik/localhost.key:ro
+      - ./traefik-tls.yml:/traefik/tls.yml:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"

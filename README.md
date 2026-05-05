@@ -12,17 +12,30 @@ Environnement de développement local partagé entre tous les projets.
 # Créer le réseau partagé
 docker network create traefik
 
+# Générer le certificat local autosigné via Docker
+make cert
+
 # Lancer la stack
 docker compose up -d
+```
+
+## SSL local
+
+Le stack expose Traefik en HTTPS avec un certificat autosigné wildcard `*.localhost`.
+
+Pour régénérer le certificat local à tout moment:
+
+```bash
+make cert
 ```
 
 ## Services
 
 | Service | URL | Rôle |
 |---------|-----|------|
-| Traefik | http://traefik.localhost | Reverse proxy |
-| Portainer | http://portainer.localhost | GUI Docker |
-| MailHog | http://mail.localhost | Catch-all emails |
+| Traefik | https://traefik.localhost | Reverse proxy |
+| Portainer | https://portainer.localhost | GUI Docker |
+| MailHog | https://mail.localhost | Catch-all emails |
 
 ## MailHog - Config SMTP pour vos projets
 
@@ -82,6 +95,9 @@ Ajouter :
 ### Commandes utiles
 
 ```bash
+# Générer/rafraîchir le certificat local
+make cert
+
 # Démarrer
 docker compose up -d
 
