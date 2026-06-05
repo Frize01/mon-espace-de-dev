@@ -1,0 +1,8 @@
+# Ajoutez vos dépendances pip ici
+# Exemples :
+# numpy
+# pandas
+# flask
+# requests
+# django
+pwntools

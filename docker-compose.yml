@@ -2,7 +2,7 @@ services:
   traefik:
     image: traefik:v3.6
     container_name: traefik
-    restart: unless-stopped
+    restart: always
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -10,12 +10,10 @@ services:
       - "--providers.docker.network=traefik"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--providers.file.filename=/traefik/tls.yml"
-      - "--providers.file.watch=true"
     ports:
-      - "80:80"
-      - "8080:8080"
-      - "443:443"
+      - "2000:80"
+      - "4040:8080"
+      - "4443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./certs/localhost.crt:/traefik/localhost.crt:ro
@@ -31,7 +29,7 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
-    restart: unless-stopped
+    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer_data:/data
@@ -76,13 +74,52 @@ services:
     profiles:
       - ide
 
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.open-webui.rule=Host(`open-webui.localhost`)"
+      - "traefik.http.services.open-webui.loadbalancer.server.port=8080"
+    volumes:
+      - ./open-webui_data:/app/backend/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - traefik
 
+  python:
+    build:
+      context: ./
+      dockerfile: ./python/Dockerfile
+    container_name: python-dev
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./python/workspace:/workspace
+      - ./python/requirements.txt:/tmp/requirements.txt:ro
+    working_dir: /workspace
+    command: python -m pip install -r /tmp/requirements.txt && tail -f /dev/null
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.python.rule=Host(`python.localhost`)"
+      - "traefik.http.services.python.loadbalancer.server.port=8000"
+    networks:
+      - traefik
+    profiles:
+      - python
 
 
 volumes:
   portainer_data:
-  code-server-config:
+
 
 networks:
+  public:
+    driver: bridge
+    attachable: true
   traefik:
     external: true
+    name: traefik
