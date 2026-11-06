@@ -25,6 +25,8 @@ services:
       - "traefik.http.routers.dashboard.service=api@internal"
     networks:
       - traefik
+    profiles:
+      - need_traefik
 
   portainer:
     image: portainer/portainer-ce:latest
